@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+  </head>
+  <body>
+    <div id="chart"></div>
+
+    <script>
+      function parsePercentage(value) {
+        return parseFloat(value.replace(',', '.'));
+      }
+      d3.csv('data.csv', function(d) {
+        return {
+          Ethnicity: d.Ethnicity,
+          Percentage: parsePercentage(d.Percentage)
+        };
+      }).then(function(data) {
+        console.log(data);
+        const width = 600;
+        const height = 400;
+        const margin = { top: 40, right: 30, bottom: 60, left: 60 };
+        const svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", width)
+          .attr("height", height);
+        const chart = svg.append("g")
+          .attr("transform", `translate(${margin.left}, ${margin.top})`);
+        const xScale = d3.scaleBand()
+          .domain(data.map(d => d.Ethnicity))
+          .range([0, width - margin.left - margin.right])
+          .padding(0.1);
+        const yScale = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.Percentage)])
+          .nice()
+          .range([height - margin.top - margin.bottom, 0]);
+        chart.selectAll(".bar")
+          .data(data)
+          .enter()
+          .append("rect")
+          .attr("class", "bar")
+          .attr("x", d => xScale(d.Ethnicity))
+          .attr("y", d => yScale(d.Percentage))
+          .attr("width", xScale.bandwidth())
+          .attr("height", d => height - margin.top - margin.bottom - yScale(d.Percentage))
+          .attr("fill", "lightblue");
+        chart.append("g")
+          .attr("class", "x-axis")
+          .attr("transform", `translate(0, ${height - margin.top - margin.bottom})`)
+          .call(d3.axisBottom(xScale));
+        chart.append("g")
+          .attr("class", "y-axis")
+          .call(d3.axisLeft(yScale));
+        svg.append("text")
+          .attr("x", width / 2)
+          .attr("y", height - 10)
+          .style("text-anchor", "middle")
+          .text("Ethnicity");
+        svg.append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("x", -height / 2)
+          .attr("y", 10)
+          .style("text-anchor", "middle")
+          .text("Percentage");
+        svg.append("text")
+          .attr("x", width / 2)
+          .attr("y", margin.top / 2)
+          .style("text-anchor", "middle")
+          .style("font-size", "18px")
+          .text("People Without Health Insurance Coverage by Ethnicity in 2021");
+      });
+    </script>
+  </body>
+</html>
+
